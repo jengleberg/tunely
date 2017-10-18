@@ -7,10 +7,6 @@
 
 
 
-
-
-
-
 $(document).ready(function() {
   console.log('app.js loaded!');
   $.get('/api/albums').success(function (albums) {
@@ -19,6 +15,7 @@ $(document).ready(function() {
     });
   });
 
+   
    $('#album-form form').on('submit', function(event) {
     event.preventDefault();
     var formData = $(this).serialize();
@@ -35,9 +32,47 @@ $(document).ready(function() {
     var id= $(this).parents('.album').data('album-id');
     console.log('id',id);
     $('#songModal').data('album-id', id);
-    $('#songModal').data('album-id', currentAlbumId);
+    $('#songModal').modal();
+});
+
+  $('saveSong').on('click', handleNewSongSubmit);
 
 });
+
+
+
+function handleNewSongSubmit(e) {
+  var albumId = $('#songModal').data('album-id');
+  var songName = $('#songName').val();
+  var trackNumber = $('#trackNumber').val();
+
+  var formData = {
+    name: songName,
+    trackNumber: trackNumber
+  };
+
+var postUrl = '/api/albums/' + albumId + '/songs';
+  console.log('posting to ', postUrl, ' with data ', formData);
+
+  $.post(postUrl, formData)
+    .success(function(song) {
+      console.log('song', song);
+
+      // re-get full album and render on page
+      $.get('/api/albums/' + albumId).success(function(album) {
+        //remove old entry
+        $('[data-album-id='+ albumId + ']').remove();
+        // render a replacement
+        renderAlbum(album);
+      });
+
+      //clear form
+      $('#songName').val('');
+      $('#trackNumber').val('');
+      $('#songModal').modal('hide');
+
+    });
+}
 
 
 function buildSongsHtml(songs) {
@@ -52,6 +87,8 @@ function buildSongsHtml(songs) {
    "                      </li>";
   return songsHtml;
 }
+
+
 
 
 // this function takes a single album and renders it to the page
