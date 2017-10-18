@@ -11,7 +11,6 @@ var bodyParser = require('body-parser');
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
 /************
  * DATABASE *
  ************/
@@ -68,7 +67,30 @@ app.post('/api/albums', function albumCreate(req, res) {
 });
  
 
+app.get('/api/albums/:id', function albumShow(req, res) {
+  console.log('requested album id=', req.params.id);
+  db.Album.findOne({_id: req.params.id}, function(err, album) {
+    res.json(album);
+  });
+});
 
+
+app.post('/api/albums/:albumId/songs', function songsCreate(req, res) {
+  console.log('body', req.body);
+  db.Album.findOne({_id: req.params.albumId}, function(err, album) {
+    if (err) {console.log('error', err); }
+
+    var song = new db.Song(req.body);
+    album.songs.push(song);
+    album.save(function(err, savedAlbum) {
+      if (err) {console.log('eror', err); }
+        console.log('album and song is saved:', savedAlbum);
+        res.json(song);
+      
+    });
+  });
+
+});
 
 
 
